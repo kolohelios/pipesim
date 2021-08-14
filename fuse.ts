@@ -9,6 +9,7 @@ class Context {
 			webIndex: {
 				template: 'src/index.html',
 			},
+			sourceMap: true,
 			cache: true,
 			devServer: this.runServer,
 		});
