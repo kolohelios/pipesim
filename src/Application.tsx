@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { createMachine, interpret } from '@xstate/fsm';
+import { assign, createMachine, interpret } from '@xstate/fsm';
 import Plot from 'react-plotly.js';
+import random from 'random';
 
 const toggleMachine = createMachine(
 	{
@@ -14,16 +15,22 @@ const toggleMachine = createMachine(
 			connected: {
 				on: {
 					TOGGLE: 'disconnected',
-					HANDLE_DATA: 'handleData',
+					HANDLE_DATA: { actions: ['collectData'] },
 				},
 			},
-			disconnected: { on: { TOGGLE: 'connected' } },
-			handleData: { always: [{}] },
+			disconnected: {
+				on: {
+					TOGGLE: 'connected',
+					HANDLE_DATA: { actions: ['collectData'] },
+				},
+			},
 		},
 	},
 	{
 		actions: {
-			collectData: (context, event) => {},
+			collectData: assign({
+				accumulatedData: (context) => context.accumulatedData + 100,
+			}),
 		},
 	},
 );
@@ -37,16 +44,14 @@ for (let i = 0; i < numberOfDevices; i++) {
 
 	toggleService[i].subscribe((state) => {
 		console.log(state);
-		console.log(toggleService[i].state);
-		console.log(i, state.value);
 	});
 
 	setInterval(() => {
-		if (Math.random() > 0.95) {
+		if (random.int(0, 100) > 95) {
 			toggleService[i].send('TOGGLE');
 		}
 		toggleService[i].send('HANDLE_DATA');
-	}, 1000);
+	}, 3000);
 }
 
 export const Application: () => JSX.Element = () => (
